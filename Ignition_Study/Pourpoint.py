@@ -8,10 +8,10 @@ PSI2PA = 6894.76
 
 ## Experiment Set Up ##
 OF = 1
-residence_time = 0.1 # [s]
+residence_time = 100 # [s]
 
 # Propellant Temperatures [K]
-T_comb = 2500
+T_comb = 1000
 T_amb = 298
 T_ox = 298
 T_fuel = 298
@@ -54,7 +54,7 @@ def define_network(inlet):
     # Mass Flow Controllers
     mfc_inlet = ct.MassFlowController(upstream=res_inlet, downstream=rctr_wsr, mdot=mdot_total)
     mfc_outlet = ct.MassFlowController(upstream=rctr_wsr, downstream=res_exhaust, mdot=mdot_total)
-    #pc_outlet = ct.PressureController(upstream=rctr_wsr, downstream=res_exhaust, primary=mfc_inlet, K=1e-3)
+    #pc_outlet = ct.PressureController(upstream=rctr_wsr, downstream=res_exhaust, primary=mfc_inlet, K=1e-5)
 
     sim = ct.ReactorNet([rctr_wsr])
     
@@ -66,24 +66,25 @@ def add_energy(E_ign):
     inlet_clone.TPY = T_mix, P_wsr, Y_mix
     dh = E_ign / mdot_total
     inlet_clone.HPY = inlet_clone.h + dh , inlet_clone.P, inlet_clone.Y
+
     return inlet_clone
 
 def ignites(E_ign, plotFlag=False):
     inlet_clone = add_energy(E_ign)
     (sim, rctr_wsr) = define_network(inlet_clone)
-
+    max_sim_time = 5000 #[s]
     if plotFlag:
         time_history = ct.SolutionArray(sol_inlet, extra=["t"])
-        max_sim_time = 500 #[s]
         step_solution(time_history, max_sim_time, rctr_wsr, sim)
         print(time_history)
         return True
 
     else:
         t = 0.0
-        while t < residence_time:
+        sim.rtol = 1e-12
+        sim.atol = 1e-12
+        while t < 500:
             t = sim.step()
-
             if rctr_wsr.phase.T > T_comb:
                 return True
 
@@ -110,15 +111,38 @@ def step_solution(time_history, max_sim_time, reactor, sim):
     print(f"Simulation Took {toc-tic:3.2f}s to compute, with {counter} steps")
     
     #plot results
-    plt.figure()
-    plt.semilogx(time_history.t, time_history.T,"-o")
-    plt.semilogx(time_history.t, time_history.P *1e-3,"-o")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Mixture Temperature [K], Pressure [KPa]")
-    plt.title("Mixture State vs. Time")
-    plt.grid(True)
-    plt.show()
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 8))
+    axes[0,0].semilogx(time_history.t, time_history.T,"-o", label="Temperature")
+    axes[0,0].set_xlabel("Time [s]")
+    axes[0,0].set_ylabel("Mixture Temperature [K]")
+    axes[0,0].set_title("Mixture Temperature vs. Time")
+    axes[0,0].legend()
+    axes[0,0].grid(True)
     
+    axes[1,1].semilogx(time_history.t, time_history.P / PSI2PA,"-o", label="Pressure")
+    axes[1,1].set_xlabel("Time [s]")
+    axes[1,1].set_ylabel("Mixture Pressure [psi]")
+    axes[1,1].set_title("Mixture Pressure vs. Time")
+    axes[1,1].legend()
+    axes[1,1].grid(True)
+
+    axes[0,1].semilogx(time_history.t, time_history.O2, "-o", label="O2")
+    axes[0,1].semilogx(time_history.t, time_history.POSF10325, "-o", label="Jet-A")
+    axes[0,1].set_xlabel("Time [s]")
+    axes[0,1].set_ylabel("Mass Fraction")
+    axes[0,1].set_title("Mixture Composition vs. Time")  
+    axes[0,1].legend()
+    axes[0,1].grid(True)
+    
+    axes[1,0].semilogx(time_history.t, time_history.u, "-o", label="Internal Energy")
+    axes[1,0].semilogx(time_history.t, time_history.h, "-o", label='Enthalpy')
+    axes[1,0].set_xlabel("Time [s]")
+    axes[1,0].set_ylabel("Enthalpy, Internal Energy [J/kg]")
+    axes[1,0].set_title("Mixture Energy vs. Time")  
+    axes[1,0].legend()
+    axes[1,0].grid(True)
+    plt.show()
+
     return time_history
 
 def steady_solve(sim, reactor):
@@ -136,7 +160,7 @@ def main():
 
     # MIE upper/lower bound guesses [J]
     E_low = 0.0
-    E_high = 3.8e6 
+    E_high = 1e5
 
     # Bisecton Search to find MIE #
     if not ignites(E_high):
@@ -157,6 +181,7 @@ def main():
     ignites(E_min, plotFlag=True)
     
     
-    return False
+    return
+
 if __name__ == "__main__":
     main()

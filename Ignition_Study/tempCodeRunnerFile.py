@@ -1,1 +1,1 @@
-max_sim_time
+E_min
