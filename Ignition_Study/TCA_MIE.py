@@ -15,13 +15,13 @@ BTU2J = 1055.06 # BTU to J
 LBM2KG = 0.453592 # lbm to kg
 
 ## Experiment Set Up ##
-OF = 1
-residence_time = 10 # [s]
+OF = 2.1
+residence_time = 0.1 # [s]
 
 # Propellant Temperatures [K]
 T_comb = 1000
 T_amb = 298
-T_ox = 298
+T_ox = 90
 T_fuel = 298
 T_mix = T_ox *(OF/(OF+1)) + T_fuel *(1/(OF+1))
 
@@ -30,16 +30,16 @@ P_wsr = 500 * PSI2PA
 P_amb = 14.7 * PSI2PA
 
 # Mass Flow Rates [kg/s]
-mdot_total = 0.12
+mdot_total = 20 * LBM2KG 
 mdot_ox = mdot_total*(OF/(OF+1))
 mdot_fuel = mdot_total*(1/(OF+1))
 
 # Jet-A reaction mechanism
-mech = "POSF5433.yaml"
+mech = "A2NTC_skeletal.yaml"
 
 # Gas Compositions #
 # Pre-Mixed Inlet
-Y_mix = {"POSF5433": (1/(OF+1)), "O2": (OF/(OF+1))}
+Y_mix = {"POSF10325": (1/(OF+1)), "O2": (OF/(OF+1))}
 sol_inlet = ct.Solution(mech)
 sol_inlet.TPY = T_mix, P_wsr, Y_mix
 
@@ -153,7 +153,7 @@ def makeplot(time_history):
     axes[1,1].grid(True)
 
     axes[0,1].semilogx(time_history.t, time_history.O2, "-o", label="O2")
-    axes[0,1].semilogx(time_history.t, time_history.POSF5433, "-o", label="Jet-A")
+    axes[0,1].semilogx(time_history.t, time_history.POSF10325, "-o", label="Jet-A")
     axes[0,1].set_xlabel("Time [s]")
     axes[0,1].set_ylabel("Mass Fraction")
     axes[0,1].set_title("Mixture Composition vs. Time")  
@@ -207,19 +207,16 @@ def main():
     T_torch = cea.get_Tcomb(Pc=pc_torch/PSI2PA, MR=OF_torch) * R2K # Torch Combustion Temp [K]
     h_torch_set = cea.get_Enthalpies(Pc=pc_torch/PSI2PA, MR=OF_torch, eps=1)# get enthalpies (BTU/lbm) [chamber (reference), throat, exit(same as throat, eps=1)]
     h_rxn_torch = (h_torch_set[0] - h_torch_set[1]) * (BTU2J / LBM2KG) # get change in enthalpy due to reaction (BTU/lbm)-> [J/kg]
-    h_rxn_torch = 12.59 * 1e6 #J/kg
-    mdot_torch = mdot_total * e_min*1.56 / h_rxn_torch # mass flow of torch needed to ignite mixture [kg/s]
-    
-    mdot_paper = 0.015 #[kg/s]
-    e_paper = (mdot_paper * h_rxn_torch / (mdot_total * 1.56))
+    h_rxn_torch = 10.4 * 1e6 #J/kg
+    mdot_torch = mdot_total * e_min / h_rxn_torch # mass flow of torch needed to ignite mixture [kg/s]
+
 
     pd.options.display.float_format = "{:.3f}".format
     df = pd.DataFrame(
     {
-        "Simulation": [e_min/1000, mdot_torch*1000],
-        "Paper": [e_paper/1000, mdot_paper*1000]
+        "Simulation": [e_min/1000, mdot_torch],
     },
-    index=["MIE [kJ/kg]", "mdot [g/s]"]
+    index=["MIE [kJ/kg]", "mdot [kg/s]"]
 )
     print()
     print(df)
