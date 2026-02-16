@@ -1,0 +1,42 @@
+{
+    "cea": {
+      "use_throat_properties": true,   // Flag [–] (true = use THROAT thermo/transport for Bartz inputs; false = CHAMBER)
+      "Pc_chamber_psia": 300.0,        // Chamber pressure Pc [psia]
+      "MR": 1.0,                       // Mixture ratio O/F [–]
+      "oxName": "GOX",                 // Oxidizer name string for RocketCEA [text]
+      "fuelName": "GH2",               // Fuel name string for RocketCEA [text]
+      "eps": 1.0,                      // Nozzle expansion ratio ε = Ae/At [–]
+      "frozen": 0                      // RocketCEA frozen chemistry flag [–] (0 = equilibrium, 1 = frozen)
+    },
+  
+    "geometry": {
+      "D_in": 0.296,                   // Hot-gas-side diameter used for A [in]
+      "Throat_D_in": 0.296,            // Throat diameter used for At and Bartz scaling [in]
+      "Ma": 0.05                       // Mach number used in Taw and sigma terms [–]
+    },
+  
+    "wall": {
+      "L_in": 0.45,                    // Wall thickness (conduction depth domain) [in]
+      "n": 1000,                       // Number of 1-D conduction nodes [–]
+      "h_nat": 5.0,                    // Outside convection coefficient (wall → ambient) [W/(m^2·K)]
+      "T_amb_K": 298.0,                // Ambient temperature [K]
+      "k_w": 16.3,                     // Wall thermal conductivity [W/(m·K)]
+      "rho": 8030,                     // Wall density [kg/m^3]
+      "cp_wall": 502,                  // Wall specific heat [J/(kg·K)]
+      "T_init_K": 298.0,               // Initial wall temperature [K]
+      "T_melt_K": 1673.0               // Melt temperature threshold for warning [K]
+    },
+  
+    "solver": {
+      "tf": 5.0,                       // Final simulation time [s]
+      "dt": 0.0005                     // Time step [s]
+    },
+  
+    "output": {
+      "gif_name": "Heat_Transfer_Simulation.gif", // Output GIF filename [text]
+      "csv_name": "Edge_Temperature_Log.csv",     // Output CSV filename [text]
+      "gif_fps": 30,                              // GIF playback frame rate [frames/s]
+      "progress_dt": 0.25                         // Console/CSV logging interval [s]
+    }
+  }
+  

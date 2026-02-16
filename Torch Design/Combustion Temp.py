@@ -25,7 +25,7 @@ print(of_array[a], T)
 Cp_chamber, Cp_Throat, x = ispObj.get_HeatCapacities(Pc= p_chamber, MR=2, eps=1)
 print(Cp_chamber, Cp_Throat)
 
-print(ispObj.get_full_cea_output(Pc= p_chamber, MR=2.2, eps=1))
+print(ispObj.get_full_cea_output(Pc= p_chamber, MR=1, eps=1))
 
 fig, ax = plt.subplots()
 ax.plot(of_array, temp_array)
@@ -34,4 +34,4 @@ plt.ylabel('Combustion Temperature [K]')
 plt.title('Combustion Temperature vs. OF Ratio: ' + ox + '/' + fuel)
 plt.grid(True)
 plt.show()
-
+print(ispObj.get_Tcomb(p_chamber, MR=1) * R2K)

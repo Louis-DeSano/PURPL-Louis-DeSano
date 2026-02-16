@@ -109,7 +109,7 @@ def size_line(mDot, rho, v_line_chosen):
     # A_inj: injector area [m^2]
     # v_line_chosen: target line velocity [m/s]
 
-    # Nominal SAE ORB inner diameters
+    # Nominal SAE ORB outer diameters
     ID = np.arange(1/16, 2, 1/16) / m2in   # [m]
 
     # Line velocity for each ID:
@@ -129,14 +129,13 @@ def main():
     ### Design Setpoints ###
 
     mDot_main = 9.5                 # main chamber mass flow [kg/s]
-    mDot_torch = mDot_main / (2* 100)    # torch mass flow [kg/s] (Huzel and Huang)
-    mDot_torch = 0.00867 * 3.5
+    mDot_torch = 0.00867 * 3.5        # [kg/s] FROM MIE Study, FOS = 2
     p_c = 300 * psi2Pa              # torch chamber pressure [psi->Pa]
 
     OF = 1                       # OF ratio
 
-    Cd = 0.9                       # Discharge Coefficient
-    choked = 1
+    Cd = 0.80                       # Discharge Coefficient
+    choked = True
 
     # Propellant Specific
     ox_CEA = 'GOX'
@@ -158,21 +157,30 @@ def main():
     print('\n')
 
 
-    """ Orifice/Throat Areas"""
+    """ Orifice/Throat Areas """
     # Calculate Line Pressures based on chosen stiffness (uniform stiffness)
-    stiffness = 0.2                    # deltaP / p_c [--]
+    stiffness_ox = 0.2                    # deltaP / p_c [--]
+    stiffness_f = 0.7                    # deltaP / p_c [--]
+
 
     #define pressure ratio and line pressure
     if (choked):
-        p_line = choked_backpressure(k_ox, stiffness, p_c)
+        p_line_ox = choked_backpressure(k_ox, stiffness_ox, p_c)
+        p_line_f = choked_backpressure(k_f, stiffness_f, p_c)
 
+        
+    
     else:
-        p_ratio = 1 / (1 + stiffness)   # pc/pline [--]
-        p_line = p_c / p_ratio          # line pressure [Pa]
+        
+        p_ratio_f = 1 / (1 + stiffness_f)   # pc/pline [--]
+        p_line_f = p_c / p_ratio_f        # line pressure [Pa]
+        p_ratio_ox = 1 / (1 + stiffness_ox)   # pc/pline [--]
+        p_line_ox = p_c / p_ratio_ox          # line pressure [Pa]
+    
     ## Get fluid properties to size orifice/throat areas ##
     #pyfluids for ox and fuel
-    fuel_PYF = Fluid(FluidsList.Hydrogen).with_state(Input.pressure(p_line), Input.temperature(T_AMB_CELSIUS))
-    ox_PYF = Fluid(FluidsList.Oxygen).with_state(Input.pressure(p_line), Input.temperature(T_AMB_CELSIUS))
+    fuel_PYF = Fluid(FluidsList.Hydrogen).with_state(Input.pressure(p_line_f), Input.temperature(T_AMB_CELSIUS))
+    ox_PYF = Fluid(FluidsList.Oxygen).with_state(Input.pressure(p_line_ox), Input.temperature(T_AMB_CELSIUS))
 
     rho_f = fuel_PYF.density            # [kg/m^3]
     rho_ox = ox_PYF.density             # [kg/m^3]
@@ -180,15 +188,18 @@ def main():
     sonic_ox = ox_PYF.sound_speed       # [m/s]
 
     print("\nPressures")
-    print(f" Stiffness: {stiffness * 100}%")
-    print(f" Ox   [psi]: {p_line/psi2Pa:0.3f}")
-    print(f" Fuel [psi]: {p_line/psi2Pa:0.3f}")
+    print(f" Ox   [psi]: {p_line_ox/psi2Pa:0.3f}")
+    print(f"   Stiffness: {stiffness_ox * 100}%")
+
+    print(f" Fuel [psi]: {p_line_f/psi2Pa:0.3f}")
+    print(f"   Stiffness: {stiffness_f * 100}%")
+
     print(f" Chamber [psi]: {p_c/psi2Pa:0.3f}")
     print("\n")
 
     # CEA for chamber exit (frozen gives lower performance bound)
     ispObj = CEA_Obj(oxName=ox_CEA, fuelName=fuel_CEA)
-    isp = 0.8 * ispObj.estimate_Ambient_Isp(Pc= (p_c/psi2Pa), MR= OF, Pamb= (P_ATM/psi2Pa), eps=1, frozen= 1)[0] # [s]
+    isp = 0.8 * ispObj.estimate_Ambient_Isp(Pc= (p_c/psi2Pa), MR= OF, Pamb= (P_ATM/psi2Pa), eps=1, frozen=1)[0] # [s]
     rho_c = ispObj.get_Densities(Pc=(p_c/psi2Pa), MR= OF, eps=1, frozen=1)[0] * lbm2kg / (ft2m**3)             #[lbm/ft^3 -> kg/m^3]
     k_c = ispObj.get_Chamber_MolWt_gamma(Pc= (p_c/psi2Pa), MR= OF, eps=1)[1]
 
@@ -202,27 +213,27 @@ def main():
     #A_t = mDot_torch * cstar / (p_c)                                   # Throat Area [m^2]
 
     if choked:
-        A_f = throat_area(mDot_f, Cd, k_f, rho_f, p_line)
-        A_ox = throat_area(mDot_ox, Cd, k_ox, rho_ox, p_line)
+        A_f = throat_area(mDot_f, Cd, k_f, rho_f, p_line_f)
+        A_ox = throat_area(mDot_ox, Cd, k_ox, rho_ox, p_line_ox)
     else:
-        A_f = unchoked_area(mDot_f, k_f, p_line, p_ratio, rho_f, Cd)        # Fuel Injection Area [m^2]
-        A_ox = unchoked_area(mDot_ox, k_ox, p_line, p_ratio, rho_ox, Cd)    # Ox Injection Area   [m^2]
+        A_f = unchoked_area(mDot_f, k_f, p_line_f, p_ratio_f, rho_f, Cd)        # Fuel Injection Area [m^2]
+        A_ox = unchoked_area(mDot_ox, k_ox, p_line_ox, p_ratio_ox, rho_ox, Cd)    # Ox Injection Area   [m^2]
 
     D_f = area_to_diameter(A_f) 
     D_ox = area_to_diameter(A_ox)
     D_t = area_to_diameter(A_t)
     
-    print("\nOrifice/Nozzle Sizing [mm]")
-    print(f" Fuel Injection Diameter: {D_f*10**3:0.3f}")
-    print(f" Ox Injection Diameter: {D_ox*10**3:0.3f}")
-    print(f" Throat Diameter: {D_t*10**3:0.3f}")
+    print("\nOrifice/Nozzle Sizing [in]")
+    print(f" Fuel Injection Diameter: {D_f * m2in:0.3f}")
+    print(f" Ox Injection Diameter: {D_ox* m2in:0.3f}")
+    print(f" Throat Diameter: {D_t* m2in:0.3f}")
     print("\n")
 
 
     # Additional Outputs
     print("\nMisc")
     print(f" Thrust [N]: {thrust:0.3f} ")
-    print(f" Tcomb  [C]: {T_comb - 273:0.3f} ")
+    print(f" Tcomb  [K]: {T_comb:0.3f} ")
     print("\n")
 
 
@@ -233,12 +244,11 @@ def main():
     Lstar = V_chamber / A_t # [m]
 
     #chamber volume -> dimensions
-    conv_angle = 45 # convergent angle [deg]
-    r_contraction = 8 # contraction ratio
+    conv_angle = 60 # convergent angle [deg]
+    r_contraction = 6.5 # contraction ratio
 
     A1 = r_contraction * A_t                                                # chamber area [m^2]
     D_c = area_to_diameter(A1)                                              # chamber diameter [m]
-    D_c = 21/64 / m2in
     L_conv = (D_c/2 - D_t/2) / np.sin(np.deg2rad(conv_angle))               # convergent length[m]
     L1 = ( V_chamber - A1*L_conv * (1 + np.sqrt(A_t/A1) + A_t/A1) ) / A1    # chamber length [m]
 
@@ -251,90 +261,37 @@ def main():
     print(f' Chamber Diameter [mm]: {D_c*10**3:0.3f}')
     print(f' Chamber Length [mm]: {L1*10**3:0.3f}')
     print(f' Convergent Length [mm]: {L_conv*10**3:0.3f}')
+    print(f' Throat Diameter [mm]: {D_t*10**3:0.3f}')
     print("\n")
 
 
-    """Balance Momentum Ratios"""
-    D_o = np.mean([D_ox, D_f]) #mean orifice diameter 
+    """Line Sizing"""
+
     if choked:
         rho_star_ox = rho_ox * (2 / (k_ox+1)) ** (1 / (k_ox-1))
         rho_star_f = rho_f * (2 / (k_f+1)) ** (1 / (k_f-1))
         v_inj_ox = mDot_ox/(rho_star_ox*A_ox)
         v_inj_f = mDot_f/(rho_star_f*A_f)
+    
     else:
         v_inj_ox = mDot_ox/(rho_ox*A_ox)
         v_inj_f = mDot_f/(rho_f*A_f)
 
-    theta_ox = 90 - (45) # oxidizer injection angle [deg]
-    mom_ox = mDot_ox * v_inj_ox * np.sin(np.deg2rad(theta_ox))
-    theta_f = np.rad2deg(np.asin( mom_ox / (mDot_f * v_inj_f) ))
-
-    D = 0.1 * L1
-    #LDo = 2
-    #D = LDo * D_o * (np.tan(np.deg2rad(theta_ox)) + np.tan(np.deg2rad(theta_f)))**-1
-    l_f = D * np.tan(np.deg2rad(theta_f))
-    l_ox = D * np.tan(np.deg2rad(theta_ox))
-
-    print("\nInjector Sizing")
-    print(f" Oxidizer Angle: {theta_ox:0.2f}")
-    print(f" Fuel Angle: {theta_f:0.2f}")
-    print(f" Impingement Distance [mm]: {D*10**3:0.3f}")
-    print(f" Ox Orifice Radial Distance [mm]: {l_ox*10**3:0.3f}")
-    print(f" Fuel Orifice Radial Distance [mm]: {l_f*10**3:0.3f}")
-    print("\n")
-
-
-    """Manifold Sizing"""
-    tD = 3 # thickness/orifice diameter: typically 4-10
-    t_orifice = tD * D_o # orifice thickness [m]
-
-    # size orifice volume to be 5 times that of orifice
-    V_orifice = t_orifice * np.max([A_ox, A_f])
-    V_manifold = 5 * V_orifice
-
-    #circle shaped manifolds
-    D_manifold = 1/4 * D_c
-    A_manifold = diameter_to_area(D_manifold)    #area of each manifold
-    h_manifold = V_manifold/A_manifold            #height of each manifold
-
-    print("\nManifold Sizing")
-    print(f" Orifice Thickness [mm]: {t_orifice * 10**3:0.3f}")
-    print(f" Manifold Volume [mm^3]: {V_manifold * (10**3)**3:0.3f}")
-    print(f" Manifold Area [mm^2]: {A_manifold * (10**3)**2:0.3f}")
-    print(f" Manifold Height [mm]: {h_manifold * 10**3:0.3f}")
-    print(f" Manifold Diameter [mm]: {D_manifold * 10**3:0.3f}")
-    print("\n")
-
-    ## Check Injector Sizing Fits Chamber Diameter ##
-    used = np.max([l_ox, l_f]) + D_manifold/2
-    avail =  (D_c - 5*10**-3) / 2
-    print("\nCheck Injector Fits Chamber Diameter")
-    print(f" Radial Distance Occupied [mm]: {used*10**3:0.3f} ")
-    print(f" Radial Distance Available [mm]: {avail * 10**3:0.3f} ")
-    if (used > avail):
-        print(" Sizing INVALID")
-    else:
-        print(" Sizing VALID")
-    print("\n")
-
-    """Bolt Calcs"""
-
-    # Thrust Force on mounted plate
-
-    # Pressure Force on Injector Face
-
-
-    """Line Sizing"""
     # find injeciton velocity
     D_line_ox, v_line_ox = size_line(mDot_ox, rho_ox, 50)
     D_line_f, v_line_f = size_line(mDot_f, rho_f, 160)
+
     print("\nLine Sizing")
     print(f" Ox Line: ORB -{D_line_ox * 16:0.0f}")
     print(f" Ox Line Velocity [m/s]: {v_line_ox:0.3f}")
     print(f" Fuel Line: ORB -{D_line_f * 16:0.0f}")
     print(f" Fuel Line Velocity [m/s]: {v_line_f:0.3f}")
 
-   
+    print("\nOrifice/Nozzle Sizing [in]")
+    print(f" Fuel Injection Diameter: {D_f * m2in:0.3f}")
+    print(f" Ox Injection Diameter: {D_ox* m2in:0.3f}")
+    print(f" Throat Diameter: {D_t* m2in:0.3f}")
+    print("\n")
 
     print(f" Ox Injection Velocity [m/s]: {v_inj_ox:0.3f}")
     print(f" Fuel Injection Velocity [m/s]: {v_inj_f:0.3f}")
@@ -344,50 +301,20 @@ def main():
 
 
 
-    """Wall Sizing"""
-    """
-    sigma_yield = []
-    temps = []
-    FOS = 1.5
-    for i in range(len(sigma_yield)):
-        t = p_c*(D_c) / (2*sigma_yield[i])
-    plt.plot(temps, t*(10**3))
-    plt.ylabel("Wall Thickness [m]")
-    plt.xlabel("Wall Temperature [C]")
-    plt.title(f"Required Thickness for {FOS} FOS vs. Wall Temp")"""
-
-    print("\nOrifice/Nozzle Sizing [in]")
-    print(f" Fuel Injection Diameter: {D_f * m2in:0.3f}")
-    print(f" Ox Injection Diameter: {D_ox* m2in:0.3f}")
-    print(f" Throat Diameter: {D_t* m2in:0.3f}")
-    print("\n")
-
 
     """Make Cad Parameter Sheet"""
     sheet = []
 
     sheet = add_cad_param(sheet, "Conv_Angle", conv_angle, "deg")
-    sheet = add_cad_param(sheet, "Ox_Angle", theta_ox, "deg")
-    sheet = add_cad_param(sheet, "Fuel_Angle", theta_f, "deg")
 
-    sheet = add_cad_param(sheet, "d_t", D_t, "m")
-    sheet = add_cad_param(sheet, "d_ox", D_ox, "m")
-    sheet = add_cad_param(sheet, "d_f", D_f, "m")
-    sheet = add_cad_param(sheet, "d_c", D_c, "m")
+    sheet = add_cad_param(sheet, "d_t", D_t*10**3, "mm")
+    sheet = add_cad_param(sheet, "d_ox", D_ox*10**3, "mm")
+    sheet = add_cad_param(sheet, "d_f", D_f*10**3, "mm")
+    sheet = add_cad_param(sheet, "d_c", D_c*10**3, "mm")
 
-    sheet = add_cad_param(sheet, "L_c", L1, "m")
-    sheet = add_cad_param(sheet, "L_conv", L_conv, "m")
-
-    sheet = add_cad_param(sheet, "d_man", D_manifold, "m")
-    sheet = add_cad_param(sheet, "h_man", h_manifold, "m")
-
-    sheet = add_cad_param(sheet, "t_wall", 0.35, "in")
-
-    sheet = add_cad_param(sheet, "l_ox", l_ox, "m")
-    sheet = add_cad_param(sheet, "l_f", l_f, "m")
-    sheet = add_cad_param(sheet, "t_inj", t_orifice, "m")
-    sheet = add_cad_param(sheet, "D_imp", D, "m")
-
+    sheet = add_cad_param(sheet, "L_c", L1*10**3, "mm")
+    sheet = add_cad_param(sheet, "L_conv", L_conv*10**3, "mm")
+    sheet = add_cad_param(sheet, "t_wall", 0.9, 'in')
 
     df = pd.DataFrame(sheet)
     df.to_csv("TCA_Igniter_dims.csv", index=False, header=False)

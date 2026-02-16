@@ -1,8 +1,8 @@
-Conv_Angle,deg,45.000deg
+Conv_Angle,deg,60.000deg
 d_t,mm,7.507mm
 d_ox,mm,1.428mm
 d_f,mm,2.431mm
 d_c,mm,19.140mm
-L_c,mm,54.704mm
-L_conv,mm,8.225mm
+L_c,mm,57.038mm
+L_conv,mm,6.716mm
 t_wall,in,0.900in

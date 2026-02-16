@@ -1,0 +1,15 @@
+{
+    "material": {
+      "rho": 8940.0,
+      "E_tension_Pa": 1.15e11,
+      "poisson": 0.31,
+      "CTE": 9.9e-6,
+      "CTE_ref_temp_F": 68
+    },
+
+    "expansion_surfaces": {
+      "A1_in": 0.268,
+      "A2_in": 8.173,
+      "A3_in": 0.646
+    }
+}

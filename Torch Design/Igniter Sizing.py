@@ -27,7 +27,7 @@ R2K = 0.555556 # rankine to Kelvin
 mdot_main = 9.5 / lbm2kg # main engine mDot [lbm/s]
 p_chamber = 150 # chamber pressure [psi]
 #thrust = 15 # [N]
-OF = 2.9
+OF = 1
 Cf = 0.8 # efficiency factor
 
 ########## LINE PRESSURES ############
@@ -73,7 +73,7 @@ isp = cstar * CF / g0
 # calculate total mass flow rate:
 # prior art indicates (main mass flow / 200) provides reliable main engine ignition
 # increase mass flow to compensate for losses
-mDot_torch = mdot_main * (1/200)  * lbm2kg # [kg/s]
+mDot_torch = 0.00867 * 2 # [kg/s]
 
 # calculate ox and fuel mass flow rates
 mDot_f = mDot_torch / (OF + 1) # [kg/s]

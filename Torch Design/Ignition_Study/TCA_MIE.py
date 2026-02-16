@@ -30,7 +30,7 @@ P_wsr = 500 * PSI2PA
 P_amb = 14.7 * PSI2PA
 
 # Mass Flow Rates [kg/s]
-mdot_total = 20 * LBM2KG * (2/100)
+mdot_total = 20 * LBM2KG * (1.420/100)
 mdot_ox = mdot_total*(OF/(OF+1))
 mdot_fuel = mdot_total*(1/(OF+1))
 
@@ -46,6 +46,13 @@ sol_inlet.TPY = T_mix, P_wsr, Y_mix
 # Arbitrary Exhaust 
 sol_exhaust = ct.Solution(mech)
 sol_exhaust.TP = T_amb, P_amb
+
+# function to get masss averaged chemical potential of mixture 
+def mass_avg_chem_pot(mixture):
+    mu = mixture.chemical_potentials      # J/kmol
+    W  = mixture.molecular_weights        # kg/kmol
+    Y  = mixture.Y                        # mass fractions
+    return np.dot(Y, mu / W)              # J/kg mixture
 
 def define_network(inlet):
 ## Define Reactor Network ##
@@ -207,7 +214,7 @@ def main():
     h_torch_set = cea.get_Enthalpies(Pc=pc_torch/PSI2PA, MR=OF_torch, eps=1)# get enthalpies (BTU/lbm) [chamber (reference), throat, exit(same as throat, eps=1)]
     h_rxn_torch = (h_torch_set[0] - h_torch_set[1]) * (BTU2J / LBM2KG) # get change in enthalpy due to reaction (BTU/lbm)-> [J/kg]"""
     
-    h_rxn_torch = 60 * 1e6 #J/kg GOX/GH2 at 2.2 OF
+    h_rxn_torch = 21 * 1e6 #J/kg GOX/GH2
     mdot_torch = mdot_total * e_min / h_rxn_torch # mass flow of torch needed to ignite mixture [kg/s]
 
     ## Print Results

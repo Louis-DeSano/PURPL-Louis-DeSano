@@ -1,8 +1,0 @@
---Windows installed using conda-- 
-conda activate ct-venv to open venv
-C:\Users\Louis\miniforge3\envs\ct-env\Lib\site-packages\cantera\data
-
---Mac installed using pip--
-pip show cantera
-/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages
-open .
