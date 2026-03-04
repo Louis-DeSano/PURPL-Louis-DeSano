@@ -1,0 +1,12 @@
+{
+    "throat_section": {
+      "D_in": 0.296,
+      "Throat_D_in": 0.296,
+      "L_in": 0.15
+    },
+    "chamber_section": {
+      "D_in": 1.5,
+      "Throat_D_in": 0.296,
+      "L_in": 0.329
+    }
+  }

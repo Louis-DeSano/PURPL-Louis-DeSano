@@ -1,0 +1,8 @@
+[
+    {
+      "run_name": "Chamber_SS304",
+      "material_id": "SS304",
+      "geometry_id": "chamber_section",
+      "expansion_flag": 1
+    }
+  ]

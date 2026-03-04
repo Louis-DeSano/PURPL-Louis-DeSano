@@ -1,0 +1,34 @@
+{
+    "C145": {
+      "k_w": 355.0,
+      "rho": 8940.0,
+      "cp_wall": 427.0,
+      "T_melt_K": 1324.0,
+      "E_tension_Pa": 1.15e11,
+      "poisson": 0.31,
+      "CTE_per_K": 9.9e-6,
+      "CTE_ref_temp_K": 293.15
+    },
+
+    "C715": {
+      "k_w": 29.3,
+      "rho": 8950.0,
+      "cp_wall": 377.0,
+      "T_melt_K": 1443.15,
+      "E_tension_Pa": 1.5168466e11,
+      "poisson": 0.31,
+      "CTE_per_K": 16.2e-6,
+      "CTE_ref_temp_K": 273.15
+    },
+
+    "SS304": {
+      "k_w": 16.3,
+      "rho": 8030.0,
+      "cp_wall": 502.0,
+      "T_melt_K": 1673.0,
+      "E_tension_Pa": 1.931e8,
+      "poisson": 0.265,
+      "CTE_per_K": 10e-6,
+      "CTE_ref_temp_K": 273.15
+    }
+  }

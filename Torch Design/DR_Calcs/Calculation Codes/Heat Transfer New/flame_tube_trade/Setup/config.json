@@ -1,0 +1,23 @@
+{
+    "cea": {
+      "property_station": "throat",
+      "Pc_chamber_psia": 300.0,
+      "MR": 1.0,
+      "oxName": "GOX",
+      "fuelName": "GH2",
+      "eps": 1.0,
+      "frozen": 0
+    },
+    
+    "solver": {
+      "tf": 5.0,
+      "dt": 0.0005,
+      "n": 1000
+    },
+    
+    "environment": {
+      "h_nat": 5.0,
+      "T_amb_K": 298.0,
+      "T_init_K": 298.0
+    }
+  }
