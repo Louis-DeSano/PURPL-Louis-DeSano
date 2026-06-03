@@ -1,0 +1,29 @@
+[
+    {
+      "run_name": "Throat_C145",
+      "material_id": "C145",
+      "geometry_id": "throat_section",
+      "expansion_flag": 1
+    },
+
+    {
+      "run_name": "Throat_C715",
+      "material_id": "C715",
+      "geometry_id": "throat_section",
+      "expansion_flag": 1
+    },
+    
+    {
+      "run_name": "Throat_SS304",
+      "material_id": "SS304",
+      "geometry_id": "throat_section",
+      "expansion_flag": 1
+    },
+    
+    {
+      "run_name": "Chamber_SS304",
+      "material_id": "SS304",
+      "geometry_id": "chamber_section",
+      "expansion_flag": 1
+    }
+  ]

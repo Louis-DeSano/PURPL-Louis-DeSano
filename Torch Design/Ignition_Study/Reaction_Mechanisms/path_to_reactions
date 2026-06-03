@@ -6,3 +6,6 @@ C:\Users\Louis\miniforge3\envs\ct-env\Lib\site-packages\cantera\data
 pip show cantera
 /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages
 open .
+
+--Convert Chemkin to yaml--
+python3 -m cantera.ck2yaml --input=mech.inp --thermo=therm.dat --transport=tran.dat

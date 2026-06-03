@@ -2,7 +2,7 @@
     "cea": {
       "property_station": "throat",
       "Pc_chamber_psia": 300.0,
-      "MR": 1.0,
+      "MR": 2,
       "oxName": "GOX",
       "fuelName": "GH2",
       "eps": 1.0,

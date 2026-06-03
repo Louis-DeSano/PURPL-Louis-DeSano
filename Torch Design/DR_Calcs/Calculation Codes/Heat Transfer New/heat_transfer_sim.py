@@ -5,8 +5,17 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio.v2 as imageio
-from rocketcea.cea_obj import CEA_Obj
+from rocketcea.cea_obj import CEA_Obj, add_new_fuel
 
+# n-Butanol (1-butanol) card
+# h,cal = heat of formation = -159,600 cal/mol (liquid, 298.15 K)
+# rho = 0.810 g/cc
+card_str = """
+fuel  C4H10O(L)  C 4  H 10  O 1
+      wt%=100.00  h,cal=-78196.0  t(k)=298.15  rho=0.810
+"""
+
+add_new_fuel('nButanol', card_str)
 # -----------------------------
 # Physics Helpers
 # -----------------------------
@@ -152,7 +161,7 @@ def run_simulation(run_entry: dict, setup_path: Path):
     phi = T_init * np.ones(n)
 
     # Bartz base heat-transfer coefficient (referenced to throat diameter)
-    area_ratio_term = (Thr_A / A) ** 0.9 if station == "throat_section" else 1.0
+    area_ratio_term = (Thr_A / A) ** 0.9 if station == "chamber_section" else 1.0
 
     hG_base = (
         (0.026 / ((Thr_D_in * INtoM) ** 0.2))
@@ -162,8 +171,7 @@ def run_simulation(run_entry: dict, setup_path: Path):
     )
 
     # Adiabatic wall temperature at the chosen station
-    Taw = T_g * (1.0 + (gam - 1.0) / 2.0 * Ma ** 2 * Pr ** (1.0 / 3.0))
-
+    Taw = T_g * (1.0 + Pr**(1/3) * (gam - 1.0)/2.0 * Ma**2)
     DD, ap0 = k_w / dy, rho * cp_w * dy / dt
 
     history, times, edge_log, melt_time = [], [], [], None

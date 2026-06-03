@@ -1,0 +1,23 @@
+{
+    "cea": {
+      "property_station": "chamber",
+      "Pc_chamber_psia": 500.0,
+      "MR": 1.62,
+      "oxName": "LOX",
+      "fuelName": "nButanol",
+      "eps": 1.0,
+      "frozen": 0
+    },
+    
+    "solver": {
+      "tf": 2.0,
+      "dt": 0.0005,
+      "n": 1000
+    },
+    
+    "environment": {
+      "h_nat": 5.0,
+      "T_amb_K": 298.0,
+      "T_init_K": 298.0
+    }
+  }

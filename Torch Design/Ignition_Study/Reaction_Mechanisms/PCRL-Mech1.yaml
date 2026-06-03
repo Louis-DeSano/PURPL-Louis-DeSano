@@ -3,7 +3,7 @@ description: |-
 
 generator: cti2yaml
 cantera-version: 3.2.0
-date: Wed, 21 Jan 2026 11:10:09 -0500
+date: Sun, 15 Mar 2026 14:43:45 -0400
 input-files: [PCRL-Mech1.cti]
 
 units: {length: cm, quantity: mol, activation-energy: kcal/mol}

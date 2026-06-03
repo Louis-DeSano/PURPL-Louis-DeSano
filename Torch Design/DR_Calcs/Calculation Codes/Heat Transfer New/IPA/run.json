@@ -1,0 +1,22 @@
+[
+    {
+      "run_name": "Chamber_SS304",
+      "material_id": "SS304",
+      "geometry_id": "chamber_section",
+      "expansion_flag": 0
+    }
+
+    {
+      "run_name": "Chamber_C145",
+      "material_id": "C145",
+      "geometry_id": "chamber_section",
+      "expansion_flag": 0
+    }
+
+    {
+      "run_name": "Chamber_C715",
+      "material_id": "C715",
+      "geometry_id": "chamber_section",
+      "expansion_flag": 0
+    }
+  ]

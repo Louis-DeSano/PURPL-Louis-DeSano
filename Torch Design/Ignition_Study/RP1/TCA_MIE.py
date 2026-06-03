@@ -25,6 +25,7 @@ T_ox = 90
 T_fuel = 298
 T_mix = T_ox *(OF/(OF+1)) + T_fuel *(1/(OF+1))
 
+
 # Propellant Pressures [Pa]
 P_wsr = 500 * PSI2PA
 P_amb = 14.7 * PSI2PA

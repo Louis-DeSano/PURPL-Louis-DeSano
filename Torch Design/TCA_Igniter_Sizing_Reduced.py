@@ -128,11 +128,10 @@ def main():
 
     ### Design Setpoints ###
 
-    mDot_main = 9.5                 # main chamber mass flow [kg/s]
-    mDot_torch = 0.00867 * 3.5        # [kg/s] FROM MIE Study, FOS = 2
+    mDot_torch = 0.0408            # [kg/s] FROM MIE Study
     p_c = 300 * psi2Pa              # torch chamber pressure [psi->Pa]
 
-    OF = 1                       # OF ratio
+    OF = 2                          # OF ratio
 
     Cd = 0.80                       # Discharge Coefficient
     choked = True
@@ -159,19 +158,16 @@ def main():
 
     """ Orifice/Throat Areas """
     # Calculate Line Pressures based on chosen stiffness (uniform stiffness)
-    stiffness_ox = 0.2                    # deltaP / p_c [--]
-    stiffness_f = 0.7                    # deltaP / p_c [--]
+    stiffness_ox = 0.35                    # deltaP / p_c [--]
+    stiffness_f = 0.35                    # deltaP / p_c [--]
 
 
     #define pressure ratio and line pressure
     if (choked):
         p_line_ox = choked_backpressure(k_ox, stiffness_ox, p_c)
         p_line_f = choked_backpressure(k_f, stiffness_f, p_c)
-
-        
     
     else:
-        
         p_ratio_f = 1 / (1 + stiffness_f)   # pc/pline [--]
         p_line_f = p_c / p_ratio_f        # line pressure [Pa]
         p_ratio_ox = 1 / (1 + stiffness_ox)   # pc/pline [--]
@@ -242,13 +238,16 @@ def main():
     t_stay = 0.0005 # [s]
     V_chamber = t_stay * mDot_torch / rho_c # [m^3]
     Lstar = V_chamber / A_t # [m]
+    #Lstar = 0.8 #m
+    V_chamber = Lstar * A_t
+    t_stay = V_chamber * rho_c / (mDot_torch)
 
     #chamber volume -> dimensions
-    conv_angle = 60 # convergent angle [deg]
+    conv_angle = 65 # convergent angle [deg]
     r_contraction = 6.5 # contraction ratio
 
     A1 = r_contraction * A_t                                                # chamber area [m^2]
-    D_c = area_to_diameter(A1)                                              # chamber diameter [m]
+    D_c = area_to_diameter(A1)               
     L_conv = (D_c/2 - D_t/2) / np.sin(np.deg2rad(conv_angle))               # convergent length[m]
     L1 = ( V_chamber - A1*L_conv * (1 + np.sqrt(A_t/A1) + A_t/A1) ) / A1    # chamber length [m]
 
@@ -281,11 +280,11 @@ def main():
     D_line_ox, v_line_ox = size_line(mDot_ox, rho_ox, 50)
     D_line_f, v_line_f = size_line(mDot_f, rho_f, 160)
 
-    print("\nLine Sizing")
+    """print("\nLine Sizing")
     print(f" Ox Line: ORB -{D_line_ox * 16:0.0f}")
     print(f" Ox Line Velocity [m/s]: {v_line_ox:0.3f}")
     print(f" Fuel Line: ORB -{D_line_f * 16:0.0f}")
-    print(f" Fuel Line Velocity [m/s]: {v_line_f:0.3f}")
+    print(f" Fuel Line Velocity [m/s]: {v_line_f:0.3f}")"""
 
     print("\nOrifice/Nozzle Sizing [in]")
     print(f" Fuel Injection Diameter: {D_f * m2in:0.3f}")
@@ -299,7 +298,27 @@ def main():
     print(f"Ox Sonic [m/s]: {sonic_ox:0.3f}")
     print(f"Fuel Sonic [m/s]: {sonic_f:0.3f}")
 
+    print(f'\nChamber Sizing IMPERIAL')
+    print(f' Stay Time [s]: {t_stay:0.4f}')
+    print(f' L Star [in]: {Lstar*m2in:0.3f}')
+    print(f" Chamber Volume [in^3]: {V_chamber*m2in**3:0.5f}")
+    print(f' Contraction Ratio: {A1/A_t:0.2f}')
+    print(f' Convergent Angle [deg] {conv_angle}')
+    print(f' Chamber Diameter [in]: {D_c*m2in:0.3f}')
+    print(f' Chamber Length [in]: {L1*m2in:0.3f}')
+    print(f' Convergent Length [in]: {L_conv*m2in:0.3f}')
+    print(f' Throat Diameter [in]: {D_t*m2in:0.3f}')
+    print("\n")
 
+    print("Orifice/Nozzle Sizing [in]")
+    print(f" Fuel Injection Diameter: {D_f * m2in:0.3f}")
+    print(f" Ox Injection Diameter: {D_ox* m2in:0.3f}")
+    print(f" Throat Diameter: {D_t* m2in:0.3f}")
+    print("\n")
+
+    print(f"fuel momentum {mDot_f*v_inj_f}")
+    print(f"ox momentum {mDot_ox*v_inj_ox}")
+    
 
 
     """Make Cad Parameter Sheet"""

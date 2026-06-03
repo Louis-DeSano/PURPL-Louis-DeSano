@@ -24,10 +24,9 @@ p_amb = 14.7 # ambient pressure
 R2K = 0.555556 # rankine to Kelvin
 
 # desgin parameters
-mdot_main = 9.5 / lbm2kg # main engine mDot [lbm/s]
-p_chamber = 150 # chamber pressure [psi]
+p_chamber = 300 # chamber pressure [psi]
 #thrust = 15 # [N]
-OF = 1
+OF = 1.6
 Cf = 0.8 # efficiency factor
 
 ########## LINE PRESSURES ############
@@ -55,7 +54,7 @@ rho_ox = ox.density
 ########## END LINE PRESSURES ############
 
 # get CEA outputs
-ispObj = CEA_Obj( oxName='GOX', fuelName='GH2')
+ispObj = CEA_Obj(oxName='GOX', fuelName='GH2')
 [k, MolWt_t] = ispObj.get_Throat_MolWt_gamma(Pc= p_chamber, MR= OF, eps= 0)
 cstar = Cf * ispObj.get_Cstar(Pc= p_chamber, MR= OF) * ft2m # [m/s]
 isp = Cf * ispObj.get_Throat_Isp(Pc= p_chamber, MR= OF, frozen= 1) #[s]
@@ -73,7 +72,7 @@ isp = cstar * CF / g0
 # calculate total mass flow rate:
 # prior art indicates (main mass flow / 200) provides reliable main engine ignition
 # increase mass flow to compensate for losses
-mDot_torch = 0.00867 * 2 # [kg/s]
+mDot_torch = 0.04446 # [kg/s]
 
 # calculate ox and fuel mass flow rates
 mDot_f = mDot_torch / (OF + 1) # [kg/s]
@@ -105,23 +104,26 @@ print(f'Choked Flow at Throat: {(p_chamber / p_amb) > throat_critRatio}')
 ######### END ORIFICE/NOZZLE SIZING #########
 
 ######### CHAMBER SIZING ########
-"""
-# chamber volume and stay time 
-Lstar = 30 / m2in  # [in->m] 
-V_chamber = Lstar * A_throat # [m^3]
-t_stay = (V_chamber * rho_chamber) / mDot_torch # [s]
-"""
+
+
+
 #get chamber volume by defining stay time
 t_stay = 0.001 # [s]
 V_chamber = t_stay * mDot_torch / rho_chamber # [m^3]
 Lstar = V_chamber / A_throat # [m]
 
+#chamber volume and stay time 
+Lstar = 1  # [in->m] 
+V_chamber = Lstar * A_throat # [m^3]
+t_stay = (V_chamber * rho_chamber) / mDot_torch # [s]
+
 #chamber volume -> dimensions
 conv_angle = 45 # convergent angle [deg]
-r_contraction = 30 # contraction ratio
+r_contraction = 12 # contraction ratio
 
 A1 = r_contraction * A_throat #chamber area [m^2]
 d_chamber = AtoD(A1)# chamber diameter [m]
+
 L_conv = (d_chamber/2 - (d_throat / m2in)/2) / np.sin(np.deg2rad(conv_angle))# convergent length[m]
 L1 = ( V_chamber - A1*L_conv * (1 + np.sqrt(A_throat/A1) + A_throat/A1) ) / A1 #chamber length [m]
 
@@ -218,7 +220,7 @@ print(f'Optimal d_f [in]: {r_MME * d_ox:0.3f}, Actual d_f [in]: {d_f:0.3f}\n')
 # orifice diameters are not near equal: going to keep it because it aligns with 
 # this formula, additionally, density is lower for GH2
 
-#impingement distance: use mean of ox and fuel diameters
+"""#impingement distance: use mean of ox and fuel diameters
 dist_imp = LD * np.mean([d_ox, d_f])
 mv_ox = mDot_ox * ox_sonic
 mv_fuel = mDot_f * fuel_sonic
@@ -239,7 +241,7 @@ print(np.argwhere(PE < 0.1))
 tD = 4 # thickness/ orifice diameter: typically 4-10: chose lower bound
 t_plate = tD * np.mean([d_ox, d_f])
 
-"""
+
 print('Injector Sizing')
 print(f' Impingement Angle [deg]: {theta_imp}')
 print(f' Impingement Distance [in]: {dist_imp:0.3f}')
